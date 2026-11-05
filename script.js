@@ -28,6 +28,9 @@
         { date: '04/11/2026', description: 'Belanja bulanan', category: 'Keperluan pribadi', type: 'Pengeluaran', amount: 120000 },
         { date: '04/11/2026', description: 'Uang saku', category: 'Uang saku', type: 'Pemasukan', amount: 1200000 }
       ];
+      const adminPersonalTransactions = [
+        { date: '04/11/2026', type: 'Pemasukan', description: 'Uang Bulanan', category: 'Uang Bulanan', amount: 5000000 }
+      ];
       const budgets = [
         { category: 'Makan', limit: 20000, spent: 12000 },
         { category: 'Belanja bulanan', limit: 150000, spent: 120000 },
@@ -109,7 +112,8 @@
       }
 
       function renderAdminPersonal() {
-        return renderDashboard();
+        const rows = adminPersonalTransactions.map((item) => `<tr><td>${safe(item.date)}</td><td>${safe(item.type)}</td><td>${safe(item.description)}</td><td>${safe(item.category)}</td><td>${money(item.amount)}</td></tr>`).join('');
+        return `<div class="admin-personal"><div class="stats">${statCard('Total Pemasukan', money(5000000))}${statCard('Total Pengeluaran', money(1000000))}${statCard('Total Saldo', money(4000000))}</div><div class="page-action"><button class="button" data-modal="transaction">+ Tambah transaksi</button></div>${panel('Detail Transaksi', table(['Tanggal', 'Jenis', 'Deskripsi', 'kategori', 'Nominal'], rows))}</div>`;
       }
 
       function renderMonitor() {
@@ -182,7 +186,7 @@
         const configs = {
           transaction: {
             title: 'Tambah transaksi',
-            fields: `<div class="field full"><label for="description">Deskripsi</label><input id="description" name="description" required maxlength="70" placeholder="Contoh: Belanja makan"></div><div class="field"><label for="type">Jenis transaksi</label><select id="type" name="type"><option>Pengeluaran</option><option>Pemasukan</option></select></div><div class="field"><label for="amount">Nominal (Rp)</label><input id="amount" name="amount" type="number" min="1" step="1000" required placeholder="50000"></div><div class="field full"><label for="category">Kategori</label><select id="category" name="category">${budgets.map((item) => `<option>${safe(item.category)}</option>`).join('')}<option>Keperluan pribadi</option></select></div>`
+            fields: `<div class="field full"><label for="description">Deskripsi</label><input id="description" name="description" required maxlength="70" placeholder="Contoh: Belanja makan"></div><div class="field"><label for="type">Jenis transaksi</label><select id="type" name="type"><option>Pengeluaran</option><option>Pemasukan</option></select></div><div class="field"><label for="amount">Nominal (Rp)</label><input id="amount" name="amount" type="text" inputmode="numeric" pattern="[0-9]+" required placeholder="50000"></div><div class="field full"><label for="category">Kategori</label><select id="category" name="category">${budgets.map((item) => `<option>${safe(item.category)}</option>`).join('')}<option>Keperluan pribadi</option></select></div>`
           },
           budget: {
             title: 'Tambah anggaran',
@@ -205,9 +209,12 @@
         const data = Object.fromEntries(new FormData(form).entries());
         const kind = byId('overlay-root').dataset.modalKind;
         if (kind === 'transaction') {
-          const amount = Number(data.amount);
-          if (!Number.isSafeInteger(amount) || amount <= 0) return showToast('Nominal transaksi harus lebih dari nol.');
-          transactions.push({ date: new Intl.DateTimeFormat('id-ID').format(new Date()), description: data.description.trim(), category: data.category, type: data.type, amount });
+          const amountText = data.amount.trim();
+          const amount = Number(amountText);
+          if (!/^\d+$/.test(amountText) || !Number.isSafeInteger(amount) || amount <= 0) return showToast('Masukkan nominal berupa angka positif.');
+          const transaction = { date: new Intl.DateTimeFormat('id-ID').format(new Date()), description: data.description.trim(), category: data.category, type: data.type, amount };
+          transactions.push(transaction);
+          if (state.role === 'admin' && state.page === 'personal') adminPersonalTransactions.push(transaction);
           showToast('Transaksi berhasil ditambahkan.');
         } else if (kind === 'budget') {
           const limit = Number(data.limit);
