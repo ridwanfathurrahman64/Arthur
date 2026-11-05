@@ -322,3 +322,14 @@
       .stat-value { margin-top: 13px; font-size: 14px; }
       .chart-panel { width: 100%; }
     }
+    .admin-personal .stats { margin-bottom: 7px; }
+    .admin-personal .stat-card { min-height: 98px; }
+    .admin-personal .page-action { margin: 0 0 7px; }
+    .admin-personal .button { min-width: 80px; }
+    .admin-personal .panel { min-height: 155px; }
+    .admin-personal th, .admin-personal td { padding-right: 7px; padding-left: 2px; }
+    .admin-personal th { border-bottom: 2px solid #222; }
+    @media (max-width: 760px) {
+      .admin-personal .stats { margin-bottom: 7px; }
+      .admin-personal .stat-card { min-height: 86px; }
+    }
